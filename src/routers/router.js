@@ -19,5 +19,14 @@ module.exports = () => {
     //localhost:port/api/confirm/:id
     app.get('/confirm/:id', users.confirm);
 
+    //localhost:port/api/getChats
+    app.post('/getChats', users.getChats);
+
+    //localhost:port/api/getUserData
+    app.post('/getUserData', users.getUserData);
+
+    //localhost:port/api/getChatData
+    app.post('/getChatData', users.getChatData);
+
     return app;
 }

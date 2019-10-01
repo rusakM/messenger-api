@@ -128,7 +128,7 @@ const getChats = (req, res) => {
     let {user} = req.body;
     let connection = mysql.createConnection(db);
 
-    let sql = `SELECT chats.chatId, usersAndTheirChats.name, latestMessagesByChats.timestamp, latestMessagesByChats.messageId, messages.content, users.photo AS userPhoto, messages.isRead, users.isActive AS userIsActive, users.userId 
+    let sql = `SELECT chats.chatId, usersAndTheirChats.name, latestMessagesByChats.timestamp, latestMessagesByChats.messageId, messages.content, messages.type AS messageType, users.photo AS userPhoto, messages.isRead, users.isActive AS userIsActive, users.userId, messages.userId AS senderId
     FROM latestMessagesByChats, usersAndTheirChats, chats, userChat, messages, users 
     WHERE userChat.userId = ${user}
     AND chats.chatId = usersAndTheirChats.chatId 
@@ -158,22 +158,6 @@ const getUserData = (req, res) => {
     }); 
 }
 
-const getChatData = (req, res) => {
-    let {user, chat} = req.body;
-    let connection = mysql.createConnection(db);
-
-    let sql = `SELECT usersAndTheirChats.userId, users.photo, usersAndTheirChats.name 
-    FROM usersAndTheirChats, users 
-    WHERE usersAndTheirChats.userId!=${user} 
-    AND usersAndTheirChats.chatId=${chat} 
-    AND usersAndTheirChats.userId = users.userId`;
-
-    connection.query(sql, (err, result, fields) => {
-        if(err) throw err;
-        res.set(headers).json(result[0]).status(200).end();
-        connection.destroy();
-    });
-}
 
 const search = (req, res) => {
     let { word } = req.body;
@@ -188,5 +172,5 @@ module.exports = {
     confirm,
     getChats,
     getUserData,
-    getChatData
+
 }

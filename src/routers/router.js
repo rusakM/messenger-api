@@ -25,8 +25,6 @@ module.exports = () => {
     //localhost:port/api/getUserData
     app.post('/getUserData', users.getUserData);
 
-    //localhost:port/api/getChatData
-    app.post('/getChatData', users.getChatData);
 
     return app;
 }

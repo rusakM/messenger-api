@@ -1,6 +1,6 @@
 let Router = require('express').Router;
 let users = require('./../controllers/users-controller');
-//let data = require('./../controllers/data-controller');
+let messages = require('./../controllers/msg-controller');
 
 module.exports = () => {
     const app = Router();
@@ -33,10 +33,10 @@ module.exports = () => {
         user: 4
     }
     */
-    app.post('/getChats', users.getChats);
+    app.post('/getChats', messages.getChats);
 
     //localhost:port/api/getUserData
-    app.post('/getUserData', users.getUserData);
+    app.post('/getUserData', messages.getUserData);
 
     //localhost:port/api/getMessages
 
@@ -46,10 +46,10 @@ module.exports = () => {
         chat: 2
     }
     */
-    app.post('/getMessages', users.getMessages);
+    app.post('/getMessages', messages.getMessages);
 
     //localhost:port/api/getLastMessageId
-    app.get('/getLastMessageId', users.getLastMessageId);
+    app.get('/getLastMessageId', messages.getLastMessageId);
 
     //localhost:port/api/getMessage
 
@@ -58,7 +58,7 @@ module.exports = () => {
         message: 5
     }
     */
-    app.post('/getMessage', users.getMessage);
+    app.post('/getMessage', messages.getMessage);
 
     //localhost:port/api/sendMessage
     /*
@@ -69,7 +69,7 @@ module.exports = () => {
          messageType: 0
      }
     */
-     app.post('/sendMessage', users.sendMessage);
+     app.post('/sendMessage', messages.sendMessage);
 
     return app;
 }

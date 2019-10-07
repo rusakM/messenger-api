@@ -1,9 +1,6 @@
 let mysql = require('mysql');
-let md5 = require('md5');
-let mailer = require('../middlewares/send-mail');
 let db = require('../middlewares/db');
 let log = require('./../middlewares/log');
-let links = require('./../middlewares/links');
 let headers = require('./../middlewares/headers');
 
 const getChats = (req, res) => {

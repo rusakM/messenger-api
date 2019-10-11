@@ -115,9 +115,29 @@ const sendMessage = (req, res) => {
     });
 }
 
-const search = (req, res) => {
-    let { word } = req.body;
+const startChat = (req, res) => {
+    let {first, second} = req.body;
     let connection = mysql.createConnection(db);
+
+    connection.query(`INSERT INTO chats (chatId) VALUES (NULL)`, (err, result, fields) => {
+        if(err) throw err;
+        let {insertId} = result;
+        let timestamp = new Date();
+        // res.set(headers).json(result).end();
+        // connection.destroy();
+        
+        connection.query(`INSERT INTO userChat (userChatId, userId, chatId) 
+            VALUES (NULL, ${first}, ${insertId}),
+            (NULL, ${second}, ${insertId})`, (err, results, fields) => {
+            if(err) throw err;
+            connection.query(`INSERT INTO messages (messageId, chatId, content, timestamp, isRead, type, senderCanSee, receiverCanSee, userId)
+            VALUES (NULL, ${insertId}, "Hello!", ${timestamp.getTime()}, 0, 0, 1, 1, ${first})`, (err, result, fields) => {
+                if(err) throw err;
+                res.set(headers).json({chatId: insertId}).status(200).end();
+                connection.destroy();
+            });
+        });
+    });
 }
 
 module.exports = {
@@ -126,5 +146,6 @@ module.exports = {
     getMessages,
     getLastMessageId,
     getMessage,
-    sendMessage
+    sendMessage,
+    startChat
 }

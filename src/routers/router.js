@@ -1,6 +1,7 @@
 let Router = require('express').Router;
 let users = require('./../controllers/users-controller');
 let messages = require('./../controllers/msg-controller');
+let searchController = require('./../controllers/search-controller');
 
 module.exports = () => {
     const app = Router();
@@ -70,6 +71,27 @@ module.exports = () => {
      }
     */
      app.post('/sendMessage', messages.sendMessage);
+
+     //localhost:port/api/search
+     /*
+    req: {
+        user: 4,
+        query: "mat"
+    }
+     */
+    app.post('/search', searchController.search);
+
+
+    //localhost:port/api/startChat
+
+    /*
+    req: {
+        first: 4,
+        second: 6
+    }
+    */
+
+    app.post('/startChat', messages.startChat);
 
     return app;
 }

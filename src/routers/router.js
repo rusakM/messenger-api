@@ -18,9 +18,6 @@ module.exports = () => {
     //localhost:port/api/logout
     app.post('/logout', users.logout);
 
-    //localhost:port/api/setActive
-    app.post('/setActive', users.setActive);
-
     //localhost:port/api/register
     app.post('/register', users.register);
 

@@ -20,6 +20,7 @@ const login = (req, res) => {
                     user: result[0].userId
                 }).end();
                 log(result[0].userId, 'Login');
+                setActive(result[0].userId);
             }
             else {
                 res.json({
@@ -39,25 +40,22 @@ const login = (req, res) => {
 const logout = (req, res) => {
     let connection = mysql.createConnection(db);
     let time = new Date();
+    let {user} = req.body;
 
-    connection.query(`UPDATE users SET isActive=0, lastSeen="${time.getTime()}" WHERE userId=${req.body.user}`, (err, result, fields) => {
+    connection.query(`UPDATE users SET isActive=0, lastSeen="${time.getTime()}" WHERE userId=${user}`, (err, result, fields) => {
         if(err) throw err;
 
         res.set(headers).status(200).end();
-        log(req.body.user, "Logout");
-
+        log(user, 'Logout');
         connection.destroy();
     });
 }
 
-const setActive = (req, res) => {
+const setActive = (user) => {
     let connection = mysql.createConnection(db);
 
-    connection.query(`UPDATE users SET isActive=1 WHERE userId=${req.body.user}`, (err, result, fields) => {
+    connection.query(`UPDATE users SET isActive=1 WHERE userId=${user}`, (err, result, fields) => {
         if(err) throw err;
-
-        res.set(headers).status(200).end();
-
         connection.destroy();
     });
 }
@@ -123,7 +121,6 @@ const confirm = (req, res) => {
 module.exports = {
     login,
     logout,
-    setActive,
     register,
     confirm
 }

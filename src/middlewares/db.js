@@ -1,6 +1,6 @@
 module.exports = {
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'messenger'
-}
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'messenger',
+};

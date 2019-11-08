@@ -1,5 +1,5 @@
 const fs = require('fs');
-const headers = require('../middlewares/headers').default;
+const headers = require('../middlewares/headers');
 
 const avatar = `${process.cwd()}/public/photos/avatar.png`;
 
@@ -45,7 +45,17 @@ const getMessage = (req, res) => {
   }
 };
 
+const saveMessage = (req, res) => {
+  if (req.body.image) {
+    req.body.image.write(`${process.cwd()}/public/messages/${req.body.id}.jpg`);
+  }
+  res.set(headers);
+  res.status(200);
+  res.end();
+};
+
 module.exports = {
   getPhoto,
   getMessage,
+  saveMessage,
 };

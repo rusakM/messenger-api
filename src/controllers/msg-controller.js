@@ -1,7 +1,9 @@
 const mysql = require('mysql');
+const base64img = require('base64-img');
+const md5 = require('md5');
 const db = require('../middlewares/db');
 const log = require('./../middlewares/log');
-const headers = require('./../middlewares/headers').default;
+const headers = require('./../middlewares/headers');
 
 const getChats = (req, res) => {
   const { user } = req.body;
@@ -121,30 +123,47 @@ const getMessage = (req, res) => {
 };
 
 const sendMessage = (req, res) => {
+  res.set(headers);
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
   const { content, messageType, senderId, chatId } = req.body;
+  const { photo } = req.body;
+  console.log(req.body);
   const connection = mysql.createConnection(db);
   const timestamp = new Date();
   const sql = `INSERT INTO messages 
     (messageId, chatId, content, timestamp, isRead, type, senderCanSee, receiverCanSee, userId)
     VALUES (NULL, ${chatId}, "${content}", "${timestamp.getTime()}", 0, ${messageType}, 1, 1, ${senderId})`;
 
-  connection.query(sql, (err, result, fields) => {
-    if (err) throw err;
-    res
-      .set(headers)
-      .json({
-        chatId,
-        messageId: result.insertId,
-        content,
-        timestamp,
-        isRead: 0,
-        messageType,
-        senderId,
-      })
-      .status(200)
-      .end();
-    connection.destroy();
-  });
+  res.status(200).end();
+
+  // connection.query(sql, (err, result, fields) => {
+  //   if (err) throw err;
+  //   if (photo) {
+  //     console.log(md5(photo));
+  //     base64img.imgSync(
+  //       photo,
+  //       `${process.cwd()}/public/messages`,
+  //       `${result.insertId}`,
+  //     );
+  //   }
+  //   res
+  //     .set(headers)
+  //     .json({
+  //       chatId,
+  //       messageId: result.insertId,
+  //       content,
+  //       timestamp,
+  //       isRead: 0,
+  //       messageType,
+  //       senderId,
+  //     })
+  //     .status(200)
+  //     .end();
+  //   connection.destroy();
+  // });
 };
 
 const startChat = (req, res) => {

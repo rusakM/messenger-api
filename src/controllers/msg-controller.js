@@ -1,6 +1,6 @@
 const mysql = require('mysql');
-const base64img = require('base64-img');
 const md5 = require('md5');
+const fs = require('fs');
 const db = require('../middlewares/db');
 const log = require('./../middlewares/log');
 const headers = require('./../middlewares/headers');
@@ -123,47 +123,57 @@ const getMessage = (req, res) => {
 };
 
 const sendMessage = (req, res) => {
-  res.set(headers);
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
   const { content, messageType, senderId, chatId } = req.body;
-  const { photo } = req.body;
-  console.log(req.body);
+
   const connection = mysql.createConnection(db);
   const timestamp = new Date();
   const sql = `INSERT INTO messages 
     (messageId, chatId, content, timestamp, isRead, type, senderCanSee, receiverCanSee, userId)
     VALUES (NULL, ${chatId}, "${content}", "${timestamp.getTime()}", 0, ${messageType}, 1, 1, ${senderId})`;
 
-  res.status(200).end();
-
-  // connection.query(sql, (err, result, fields) => {
-  //   if (err) throw err;
-  //   if (photo) {
-  //     console.log(md5(photo));
-  //     base64img.imgSync(
-  //       photo,
-  //       `${process.cwd()}/public/messages`,
-  //       `${result.insertId}`,
-  //     );
-  //   }
-  //   res
-  //     .set(headers)
-  //     .json({
-  //       chatId,
-  //       messageId: result.insertId,
-  //       content,
-  //       timestamp,
-  //       isRead: 0,
-  //       messageType,
-  //       senderId,
-  //     })
-  //     .status(200)
-  //     .end();
-  //   connection.destroy();
-  // });
+  connection.query(sql, (err, result, fields) => {
+    if (err) throw err;
+    if (req.file) {
+      log(senderId, `Send photo, id: ${result.insertId}`);
+      fs.rename(
+        req.file.path,
+        `public/messages/${result.insertId}.jpg`,
+        (err) => {
+          if (err) throw err;
+          res
+            .set(headers)
+            .json({
+              chatId,
+              messageId: result.insertId,
+              content,
+              timestamp,
+              isRead: 0,
+              messageType: parseInt(messageType, 10),
+              senderId,
+            })
+            .status(200)
+            .end();
+          connection.destroy();
+        },
+      );
+    } else {
+      log(senderId, `Send message, id: ${result.insertId}`);
+      res
+        .set(headers)
+        .json({
+          chatId,
+          messageId: result.insertId,
+          content,
+          timestamp,
+          isRead: 0,
+          messageType,
+          senderId,
+        })
+        .status(200)
+        .end();
+      connection.destroy();
+    }
+  });
 };
 
 const startChat = (req, res) => {

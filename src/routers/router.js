@@ -1,7 +1,10 @@
 const { Router } = require('express');
+const multer = require('multer');
 const users = require('./../controllers/users-controller');
 const messages = require('./../controllers/msg-controller');
 const searchController = require('./../controllers/search-controller');
+
+const upload = multer({ dest: 'public/messages/' });
 
 module.exports = () => {
   const app = Router();
@@ -67,7 +70,7 @@ module.exports = () => {
          messageType: 0
      }
     */
-  app.post('/sendMessage', messages.sendMessage);
+  app.post('/sendMessage', upload.single('photo'), messages.sendMessage);
 
   // localhost:port/api/search
   /*

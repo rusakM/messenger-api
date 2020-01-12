@@ -92,5 +92,9 @@ module.exports = () => {
 
   app.post('/startChat', messages.startChat);
 
+  // localhost:port/api/setViewed/?userId=4&chatId=2
+
+  app.get('/setViewed', messages.setViewed);
+
   return app;
 };

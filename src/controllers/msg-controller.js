@@ -166,7 +166,7 @@ const sendMessage = (req, res) => {
           content,
           timestamp,
           isRead: 0,
-          messageType,
+          messageType: parseInt(messageType, 10),
           senderId,
         })
         .status(200)
@@ -214,6 +214,27 @@ const startChat = (req, res) => {
   );
 };
 
+const setViewed = (req, res) => {
+  if (!req.query.userId || !req.query.chatId) {
+    res
+      .set(headers)
+      .status(404)
+      .end();
+    return;
+  }
+  const { userId, chatId } = req.query;
+  const connection = mysql.createConnection(db);
+  const query = `UPDATE messages SET isRead = 1 WHERE chatId = ${chatId} AND userId != ${userId} AND isRead = 0`;
+  connection.query(query, (err, result, fields) => {
+    if (err) throw err;
+    res
+      .set(headers)
+      .status(200)
+      .end();
+    connection.destroy();
+  });
+};
+
 module.exports = {
   getChats,
   getUserData,
@@ -222,4 +243,5 @@ module.exports = {
   getMessage,
   sendMessage,
   startChat,
+  setViewed,
 };

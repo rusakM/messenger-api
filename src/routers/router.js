@@ -96,5 +96,16 @@ module.exports = () => {
 
   app.get('/setViewed', messages.setViewed);
 
+  // localhost:port/api/checkNewMessages/?chatId=6&messageId=25
+
+  app.get('/checkNewMessages', messages.checkNewMessages);
+
+  // localhost:port/api/getNewMessages/?chatId=6&messageId=25
+
+  app.get('/getNewMessages', messages.getNewMessages);
+
+  // localhost:port/api/getNewMessages/?userId=4&timestamp=1579166482811
+
+  app.get('/checkUpdates', messages.checkUpdates);
   return app;
 };

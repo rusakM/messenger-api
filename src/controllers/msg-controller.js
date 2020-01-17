@@ -4,12 +4,14 @@ const fs = require('fs');
 const db = require('../middlewares/db');
 const log = require('./../middlewares/log');
 const headers = require('./../middlewares/headers');
+const setUserTimestamp = require('./../middlewares/user-timestamp');
+const setChatTimestamp = require('./../middlewares/chat-timstamp');
 
 const getChats = (req, res) => {
   const { user } = req.body;
   const connection = mysql.createConnection(db);
 
-  const sql = `SELECT chats.chatId, usersAndTheirChats.name, latestMessagesByChats.timestamp, latestMessagesByChats.messageId, messages.content, messages.type AS messageType, users.photo AS userPhoto, messages.isRead, users.isActive AS userIsActive, users.userId, messages.userId AS senderId
+  const sql = `SELECT chats.chatId, usersAndTheirChats.name, latestMessagesByChats.timestamp AS msgTimestamp, chats.lastTimestamp AS chatTimestamp, latestMessagesByChats.messageId, messages.content, messages.type AS messageType, users.photo AS userPhoto, messages.isRead, users.isActive AS userIsActive, users.userId, messages.userId AS senderId
     FROM latestMessagesByChats, usersAndTheirChats, chats, userChat, messages, users 
     WHERE userChat.userId = ${user}
     AND chats.chatId = usersAndTheirChats.chatId 
@@ -126,10 +128,11 @@ const sendMessage = (req, res) => {
   const { content, messageType, senderId, chatId } = req.body;
 
   const connection = mysql.createConnection(db);
-  const timestamp = new Date();
+  const timeNow = new Date();
+  const timestamp = timeNow.getTime();
   const sql = `INSERT INTO messages 
     (messageId, chatId, content, timestamp, isRead, type, senderCanSee, receiverCanSee, userId)
-    VALUES (NULL, ${chatId}, "${content}", "${timestamp.getTime()}", 0, ${messageType}, 1, 1, ${senderId})`;
+    VALUES (NULL, ${chatId}, "${content}", "${timestamp}", 0, ${messageType}, 1, 1, ${senderId})`;
 
   connection.query(sql, (err, result, fields) => {
     if (err) throw err;
@@ -173,15 +176,17 @@ const sendMessage = (req, res) => {
         .end();
       connection.destroy();
     }
+    setChatTimestamp(chatId);
   });
 };
 
 const startChat = (req, res) => {
   const { first, second } = req.body;
   const connection = mysql.createConnection(db);
+  const timeNow = new Date();
 
   connection.query(
-    'INSERT INTO chats (chatId) VALUES (NULL)',
+    `INSERT INTO chats (chatId, lastTimestamp) VALUES (NULL, "${timeNow.getTime()}")`,
     (err, result, fields) => {
       if (err) throw err;
       const { insertId } = result;
@@ -232,6 +237,71 @@ const setViewed = (req, res) => {
       .status(200)
       .end();
     connection.destroy();
+    setChatTimestamp(chatId);
+  });
+};
+
+const checkNewMessages = (req, res) => {
+  if (!req.query.chatId || !req.query.messageId) {
+    res.set(headers).status(404).end();
+    return;
+  }
+  const { chatId, messageId } = req.query;
+  const connection = mysql.createConnection(db);
+  const query = `SELECT COUNT(*) AS count FROM messages WHERE messageId > ${messageId} AND chatId = ${chatId}`;
+
+  connection.query(query, (err, result, fields) => {
+    if (err) throw err;
+    connection.query(`SELECT messageId AS lastRead FROM messages WHERE isRead = 1 AND chatId = ${chatId} ORDER BY messageId DESC LIMIT 1`, (e, r, f) => {
+      if (e) throw e;
+      let lastRead = 0;
+      if (r.length > 0) {
+        lastRead = r[0].lastRead;
+      }
+      res.set(headers)
+        .json({
+          count: result[0].count,
+          lastRead,
+        })
+        .status(200).end();
+      connection.destroy();
+    });
+  });
+};
+
+const getNewMessages = (req, res) => {
+  if (!req.query.chatId || !req.query.messageId) {
+    res.set(headers).status(404).end();
+    return;
+  }
+  const connection = mysql.createConnection(db);
+  const { chatId, messageId } = req.query;
+  const query = `SELECT chatId, messageId, content, timestamp, isRead, type AS messageType, userId AS senderId 
+  FROM messages WHERE messageId > ${messageId} AND chatId = ${chatId}`;
+
+  connection.query(query, (err, result, fields) => {
+    if (err) throw err;
+    res.set(headers)
+      .json(result)
+      .status(200)
+      .end();
+    connection.destroy();
+  });
+};
+
+const checkUpdates = (req, res) => {
+  if (!req.query.userId || !req.query.timestamp) {
+    res.set(headers).status(404).end();
+    return;
+  }
+  const connection = mysql.createConnection(db);
+  const { userId, timestamp } = req.query;
+  const query = `SELECT COUNT(*) AS updates FROM usersAndTheirChats WHERE userId=${userId} AND timestamp > "${timestamp}"`;
+
+  connection.query(query, (err, result, fields) => {
+    if (err) throw err;
+    res.set(headers).json(result[0]).status(200).end();
+    connection.destroy();
   });
 };
 
@@ -244,4 +314,7 @@ module.exports = {
   sendMessage,
   startChat,
   setViewed,
+  checkNewMessages,
+  getNewMessages,
+  checkUpdates,
 };

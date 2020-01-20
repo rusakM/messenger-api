@@ -107,5 +107,13 @@ module.exports = () => {
   // localhost:port/api/getNewMessages/?userId=4&timestamp=1579166482811
 
   app.get('/checkUpdates', messages.checkUpdates);
+
+  // localhost:port/api/getNotification/?userId=4&timestamp=1579166482811
+
+  app.get('/getNotification', messages.getNotification);
+
+  // localhost:port/api/cheeckNotifications/?userId=4&timestamp=1579166482811
+
+  app.get('/checkNotifications', messages.checkNotifications);
   return app;
 };

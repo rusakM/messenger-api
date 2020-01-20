@@ -243,7 +243,10 @@ const setViewed = (req, res) => {
 
 const checkNewMessages = (req, res) => {
   if (!req.query.chatId || !req.query.messageId) {
-    res.set(headers).status(404).end();
+    res
+      .set(headers)
+      .status(404)
+      .end();
     return;
   }
   const { chatId, messageId } = req.query;
@@ -252,26 +255,34 @@ const checkNewMessages = (req, res) => {
 
   connection.query(query, (err, result, fields) => {
     if (err) throw err;
-    connection.query(`SELECT messageId AS lastRead FROM messages WHERE isRead = 1 AND chatId = ${chatId} ORDER BY messageId DESC LIMIT 1`, (e, r, f) => {
-      if (e) throw e;
-      let lastRead = 0;
-      if (r.length > 0) {
-        lastRead = r[0].lastRead;
-      }
-      res.set(headers)
-        .json({
-          count: result[0].count,
-          lastRead,
-        })
-        .status(200).end();
-      connection.destroy();
-    });
+    connection.query(
+      `SELECT messageId AS lastRead FROM messages WHERE isRead = 1 AND chatId = ${chatId} ORDER BY messageId DESC LIMIT 1`,
+      (e, r, f) => {
+        if (e) throw e;
+        let lastRead = 0;
+        if (r.length > 0) {
+          lastRead = r[0].lastRead;
+        }
+        res
+          .set(headers)
+          .json({
+            count: result[0].count,
+            lastRead,
+          })
+          .status(200)
+          .end();
+        connection.destroy();
+      },
+    );
   });
 };
 
 const getNewMessages = (req, res) => {
   if (!req.query.chatId || !req.query.messageId) {
-    res.set(headers).status(404).end();
+    res
+      .set(headers)
+      .status(404)
+      .end();
     return;
   }
   const connection = mysql.createConnection(db);
@@ -281,7 +292,8 @@ const getNewMessages = (req, res) => {
 
   connection.query(query, (err, result, fields) => {
     if (err) throw err;
-    res.set(headers)
+    res
+      .set(headers)
       .json(result)
       .status(200)
       .end();
@@ -291,7 +303,10 @@ const getNewMessages = (req, res) => {
 
 const checkUpdates = (req, res) => {
   if (!req.query.userId || !req.query.timestamp) {
-    res.set(headers).status(404).end();
+    res
+      .set(headers)
+      .status(404)
+      .end();
     return;
   }
   const connection = mysql.createConnection(db);
@@ -300,7 +315,69 @@ const checkUpdates = (req, res) => {
 
   connection.query(query, (err, result, fields) => {
     if (err) throw err;
-    res.set(headers).json(result[0]).status(200).end();
+    res
+      .set(headers)
+      .json(result[0])
+      .status(200)
+      .end();
+    connection.destroy();
+  });
+};
+
+const getNotification = (req, res) => {
+  if (!req.query.timestamp || !req.query.userId) {
+    res
+      .set(headers)
+      .status(404)
+      .end();
+    return;
+  }
+  const connection = mysql.createConnection(db);
+  const { timestamp, userId } = req.query;
+  const query = `SELECT messages.chatId, messages.userId, messages.content, CONCAT_WS(" ", users.name, users.surname) AS name, messages.messageId 
+  FROM users, messages, usersAndTheirChats 
+  WHERE users.userId = messages.userId 
+  AND usersAndTheirChats.userId = ${userId}
+  AND messages.chatId = usersAndTheirChats.chatId 
+  AND messages.userId != ${userId}
+  AND messages.timestamp > "${timestamp}"
+  ORDER BY messages.messageId DESC LIMIT 1`;
+
+  connection.query(query, (err, result, fields) => {
+    if (err) throw err;
+    res
+      .set(headers)
+      .json(result[0])
+      .status(200)
+      .end();
+    connection.destroy();
+  });
+};
+
+const checkNotifications = (req, res) => {
+  if (!req.query.userId || !req.query.timestamp) {
+    res
+      .set(headers)
+      .status(404)
+      .end();
+    return;
+  }
+  const { userId, timestamp } = req.query;
+  const connection = mysql.createConnection(db);
+  const query = `SELECT COUNT(*) AS count FROM messages, users, usersAndTheirChats 
+  WHERE usersAndTheirChats.userId = ${userId} 
+  AND messages.userId = users.userId
+  AND usersAndTheirChats.chatId = messages.chatId
+  AND messages.timestamp > "${timestamp}"
+  AND messages.userId != ${userId}`;
+
+  connection.query(query, (err, result, fields) => {
+    if (err) throw err;
+    res
+      .set(headers)
+      .json(result[0])
+      .status(200)
+      .end();
     connection.destroy();
   });
 };
@@ -317,4 +394,6 @@ module.exports = {
   checkNewMessages,
   getNewMessages,
   checkUpdates,
+  getNotification,
+  checkNotifications,
 };

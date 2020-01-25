@@ -1,9 +1,8 @@
 const mysql = require('mysql');
 const md5 = require('md5');
 const fs = require('fs');
-const db = require('../middlewares/db');
+const {db, headers} = require('./../middlewares/config');
 const log = require('./../middlewares/log');
-const headers = require('./../middlewares/headers');
 const setUserTimestamp = require('./../middlewares/user-timestamp');
 const setChatTimestamp = require('./../middlewares/chat-timstamp');
 

@@ -62,3 +62,6 @@ typings/
 
 #messages folder
 public/messages/
+
+#config-file 
+src/middlewares/config.js

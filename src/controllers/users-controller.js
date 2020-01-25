@@ -2,10 +2,8 @@
 const mysql = require('mysql');
 const md5 = require('md5');
 const mailer = require('../middlewares/send-mail');
-const db = require('../middlewares/db');
+const { db, links, headers } = require('./../middlewares/config');
 const log = require('./../middlewares/log');
-const links = require('./../middlewares/links');
-const headers = require('./../middlewares/headers');
 
 const login = (req, res) => {
   const connection = mysql.createConnection(db);

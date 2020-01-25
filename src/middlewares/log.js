@@ -1,5 +1,5 @@
 const mysql = require('mysql');
-const db = require('./db');
+const { db } = require('./config');
 
 module.exports = (user, message) => {
   const time = new Date();

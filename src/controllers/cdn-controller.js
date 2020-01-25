@@ -1,5 +1,5 @@
 const fs = require('fs');
-const headers = require('../middlewares/headers');
+const { headers } = require('./../middlewares/config')
 
 const avatar = `${process.cwd()}/public/photos/avatar.png`;
 

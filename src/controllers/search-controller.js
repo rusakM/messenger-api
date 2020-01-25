@@ -1,7 +1,7 @@
 const mysql = require('mysql');
-const db = require('../middlewares/db');
+const {db, headers} = require('./../middlewares/config');
 const log = require('./../middlewares/log');
-const headers = require('./../middlewares/headers');
+
 
 const search = (req, res) => {
   const connection = mysql.createConnection(db);

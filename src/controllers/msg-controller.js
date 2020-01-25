@@ -55,7 +55,7 @@ const getMessages = (req, res) => {
   const { user, chat, limit } = req.body;
   const connection = mysql.createConnection(db);
 
-  let sql = `SELECT chatId, messageId, content, timestamp, isRead, type AS messageType, userId AS senderId 
+  let sql = `SELECT chatId, messageId, content, timestamp AS msgTimestamp, isRead, type AS messageType, userId AS senderId 
         FROM messages 
         WHERE chatId=${chat}
         AND (
@@ -66,7 +66,7 @@ const getMessages = (req, res) => {
         ORDER BY messageId
         LIMIT 25`;
   if (limit) {
-    sql = `SELECT chatId, messageId, content, timestamp, isRead, type AS messageType, userId senderId 
+    sql = `SELECT chatId, messageId, content, timestamp AS msgTimesamp, isRead, type AS messageType, userId senderId 
         FROM messages 
         WHERE chatId=${chat}
         AND (
@@ -109,7 +109,7 @@ const getLastMessageId = (req, res) => {
 const getMessage = (req, res) => {
   const connection = mysql.createConnection(db);
   connection.query(
-    `SELECT chatId, messageId, content, timestamp, isRead, type AS messageType, userId AS senderId 
+    `SELECT chatId, messageId, content, timestamp as msgTimestamp, isRead, type AS messageType, userId AS senderId 
     FROM messages WHERE messageId=${req.body.message}`,
     (err, result, fields) => {
       if (err) throw err;
@@ -286,7 +286,7 @@ const getNewMessages = (req, res) => {
   }
   const connection = mysql.createConnection(db);
   const { chatId, messageId } = req.query;
-  const query = `SELECT chatId, messageId, content, timestamp, isRead, type AS messageType, userId AS senderId 
+  const query = `SELECT chatId, messageId, content, timestamp AS msgTimestamp, isRead, type AS messageType, userId AS senderId 
   FROM messages WHERE messageId > ${messageId} AND chatId = ${chatId}`;
 
   connection.query(query, (err, result, fields) => {

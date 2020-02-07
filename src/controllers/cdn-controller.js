@@ -1,5 +1,7 @@
 const fs = require('fs');
-const { headers } = require('./../middlewares/config')
+const mysql = require('mysql');
+const { headers, db } = require('./../middlewares/config');
+const log = require('../middlewares/log');
 
 const avatar = `${process.cwd()}/public/photos/avatar.png`;
 
@@ -45,17 +47,51 @@ const getMessage = (req, res) => {
   }
 };
 
-const saveMessage = (req, res) => {
-  if (req.body.image) {
-    req.body.image.write(`${process.cwd()}/public/messages/${req.body.id}.jpg`);
+const savePhoto = (req, res) => {
+  fs.rename(req.file.path, `public/photos/${req.body.userId}.jpg`, (err) => {
+    if (err) throw err;
+    const connection = mysql.createConnection(db);
+    connection.query(
+      `UPDATE users SET photo=1 WHERE userId=${req.body.userId}`,
+      (err, result, fields) => {
+        if (err) throw err;
+        res
+          .set(headers)
+          .status(200)
+          .end();
+        log(req.body.userId, 'User photo changed');
+      },
+    );
+  });
+};
+
+const deletePhoto = (req, res) => {
+  if (!req.query.userId) {
+    res
+      .set(headers)
+      .status(404)
+      .end();
   }
-  res.set(headers);
-  res.status(200);
-  res.end();
+  const connection = mysql.createConnection(db);
+  const path = `public/photos/${req.query.userId}.jpg`;
+  const query = `UPDATE users SET photo = 0 WHERE userId = ${req.query.userId}`;
+
+  fs.unlink(path, () => {
+    connection.query(query, (err, result, fields) => {
+      if (err) throw err;
+      res
+        .set(headers)
+        .status(200)
+        .end();
+      log(req.query.userId, 'User photo deleted');
+      connection.destroy();
+    });
+  });
 };
 
 module.exports = {
   getPhoto,
   getMessage,
-  saveMessage,
+  savePhoto,
+  deletePhoto,
 };

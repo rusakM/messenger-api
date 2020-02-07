@@ -27,6 +27,21 @@ module.exports = () => {
   // localhost:port/api/confirm/:id
   app.get('/confirm/:id', users.confirm);
 
+  // localhost:port/api/fetchUserData/?userId=4
+
+  app.get('/fetchUserData', users.fetchUserData);
+
+  // localhost:port/api/changePassword
+
+  /*
+    req: {
+      password: "bce8d6bdee6a3169f4523263fa1f563c",
+      userId: 4
+    }
+  */
+
+  app.post('/changePassword', users.changePassword);
+
   // localhost:port/api/getChats
 
   /*
@@ -115,5 +130,6 @@ module.exports = () => {
   // localhost:port/api/cheeckNotifications/?userId=4&timestamp=1579166482811
 
   app.get('/checkNotifications', messages.checkNotifications);
+
   return app;
 };

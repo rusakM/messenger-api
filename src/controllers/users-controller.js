@@ -158,9 +158,46 @@ const confirm = (req, res) => {
   );
 };
 
+const fetchUserData = (req, res) => {
+  if (!req.query.userId) {
+    res
+      .set(headers)
+      .status(404)
+      .end();
+  }
+  const connection = mysql.createConnection(db);
+  const query = `SELECT email, name, surname, password, photo FROM users WHERE userId=${req.query.userId}`;
+  connection.query(query, (err, result, fields) => {
+    if (err) throw err;
+    res
+      .set(headers)
+      .json(result[0])
+      .status(200)
+      .end();
+    connection.destroy();
+  });
+};
+
+const changePassword = (req, res) => {
+  const connection = mysql.createConnection(db);
+  const query = `UPDATE users SET password="${req.body.password}" WHERE userId=${req.body.userId}`;
+
+  connection.query(query, (err, result, fields) => {
+    if (err) throw err;
+    res
+      .set(headers)
+      .status(200)
+      .end();
+    log(req.body.userId, 'Password changed');
+    connection.destroy();
+  });
+};
+
 module.exports = {
   login,
   logout,
   register,
   confirm,
+  fetchUserData,
+  changePassword,
 };

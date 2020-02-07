@@ -2,7 +2,7 @@ const { Router } = require('express');
 const multer = require('multer');
 const Cdn = require('./../controllers/cdn-controller');
 
-const upload = multer({ dest: `${process.cwd()}/public/messagess` });
+const upload = multer({ dest: `${process.cwd()}/public/photos` });
 
 module.exports = () => {
   const app = Router();
@@ -11,11 +11,9 @@ module.exports = () => {
 
   app.get('/message/:id', Cdn.getMessage);
 
-  app.post('/saveMessage', Cdn.saveMessage);
+  app.get('/deletePhoto', Cdn.deletePhoto);
 
-  app.post('/savePhoto', upload.single('avatar'), () =>
-    console.log('image saved'),
-  );
+  app.post('/savePhoto', upload.single('photo'), Cdn.savePhoto);
 
   return app;
 };

@@ -42,6 +42,9 @@ module.exports = () => {
 
   app.post('/changePassword', users.changePassword);
 
+  // localhost:port/api/disableAccount/?userId=4
+  app.get('/disableAccount', users.disableAccount);
+
   // localhost:port/api/getChats
 
   /*
@@ -49,6 +52,7 @@ module.exports = () => {
         user: 4
     }
     */
+
   app.post('/getChats', messages.getChats);
 
   // localhost:port/api/getUserData
@@ -127,9 +131,13 @@ module.exports = () => {
 
   app.get('/getNotification', messages.getNotification);
 
-  // localhost:port/api/cheeckNotifications/?userId=4&timestamp=1579166482811
+  // localhost:port/api/checkNotifications/?userId=4&timestamp=1579166482811
 
   app.get('/checkNotifications', messages.checkNotifications);
+
+  // localhost:port/api/getFirstMessageId/?chatId=6
+
+  app.get('/getFirstMessageId', messages.getFirstMessageId);
 
   return app;
 };

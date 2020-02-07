@@ -119,7 +119,7 @@ const register = (req, res) => {
     }", 0, NULL, NULL, NULL)`,
     (err, result, fields) => {
       if (err) throw err;
-      mailer(
+      mailer.sendRegisterMail(
         req.body.email,
         result.insertId,
         `${req.body.name} ${req.body.surname}`,
@@ -193,6 +193,33 @@ const changePassword = (req, res) => {
   });
 };
 
+const disableAccount = (req, res) => {
+  if (!req.query.userId) {
+    res
+      .set(headers)
+      .status(404)
+      .end();
+  }
+  const connection = mysql.createConnection(db);
+  const query = `UPDATE users SET activated=0 WHERE userId = ${req.query.userId}`;
+
+  connection.query(query, (err, result, fields) => {
+    if (err) throw err;
+    connection.query(
+      `SELECT CONCAT_WS(' ', name, surname) AS name, email FROM users WHERE userId = ${req.query.userId}`,
+      (e, r, f) => {
+        if (e) throw e;
+        mailer.sendDisableMail(r[0].email, req.query.userId, r[0].name);
+        res
+          .set(headers)
+          .status(200)
+          .end();
+        connection.destroy();
+      },
+    );
+  });
+};
+
 module.exports = {
   login,
   logout,
@@ -200,4 +227,5 @@ module.exports = {
   confirm,
   fetchUserData,
   changePassword,
+  disableAccount,
 };

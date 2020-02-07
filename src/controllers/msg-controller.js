@@ -1,6 +1,6 @@
 const mysql = require('mysql');
 const fs = require('fs');
-const { db, headers } = require('./../middlewares/config');
+const { db, headers, pagination } = require('./../middlewares/config');
 const log = require('./../middlewares/log');
 // const setUserTimestamp = require('./../middlewares/user-timestamp');
 const setChatTimestamp = require('./../middlewares/chat-timstamp');
@@ -62,8 +62,8 @@ const getMessages = (req, res) => {
             OR
             (userId!=${user} AND receiverCanSee=1)
         )
-        ORDER BY messageId
-        LIMIT 25`;
+        ORDER BY messageId DESC
+        LIMIT ${pagination}`;
   if (limit) {
     sql = `SELECT chatId, messageId, content, timestamp AS msgTimesamp, isRead, type AS messageType, userId senderId 
         FROM messages 
@@ -74,8 +74,8 @@ const getMessages = (req, res) => {
             (userId!=${user} AND receiverCanSee=1)
         )
         AND messageId < ${limit}
-        ORDER BY messageId
-        LIMIT 25`;
+        ORDER BY messageId DESC
+        LIMIT ${pagination}`;
   }
 
   connection.query(sql, (err, result, fields) => {
@@ -380,6 +380,29 @@ const checkNotifications = (req, res) => {
   });
 };
 
+const getFirstMessageId = (req, res) => {
+  if (!req.query.chatId) {
+    res
+      .set(headers)
+      .json({ id: 0 })
+      .end();
+  }
+  const connection = mysql.createConnection(db);
+  const query = `SELECT messageId FROM messages WHERE chatId = ${req.query.chatId} ORDER BY messageId ASC LIMIT 1`;
+
+  connection.query(query, (err, result, fields) => {
+    if (err) throw err;
+    res
+      .set(headers)
+      .json({
+        id: result[0].messageId,
+      })
+      .status(200)
+      .end();
+    connection.destroy();
+  });
+};
+
 module.exports = {
   getChats,
   getUserData,
@@ -394,4 +417,5 @@ module.exports = {
   checkUpdates,
   getNotification,
   checkNotifications,
+  getFirstMessageId,
 };

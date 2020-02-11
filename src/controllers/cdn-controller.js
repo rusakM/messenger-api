@@ -2,6 +2,7 @@ const fs = require('fs');
 const mysql = require('mysql');
 const { headers, db } = require('./../middlewares/config');
 const log = require('../middlewares/log');
+const { resizePhoto } = require('../middlewares/resize');
 
 const avatar = `${process.cwd()}/public/photos/avatar.png`;
 
@@ -50,6 +51,7 @@ const getMessage = (req, res) => {
 const savePhoto = (req, res) => {
   fs.rename(req.file.path, `public/photos/${req.body.userId}.jpg`, (err) => {
     if (err) throw err;
+    resizePhoto(req.body.userId);
     const connection = mysql.createConnection(db);
     connection.query(
       `UPDATE users SET photo=1 WHERE userId=${req.body.userId}`,

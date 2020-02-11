@@ -78,61 +78,46 @@ const setActive = (user) => {
 };
 
 const register = (req, res) => {
-  const connection = mysql.createConnection(db);
   const { email, password, name, surname } = req.body;
-  const query = `SELECT userId FROM users WHERE email="${email}"`;
-  let registerStatus = 0;
-  connection.query(query, (err, result, fields) => {
-    if (err) throw err;
-    if (result.length > 0) {
-      res
-        .set(headers)
-        .json({
-          registerStatus,
-        })
-        .end();
-      connection.destroy();
-    } else {
-      registerStatus = 1;
-    }
-  });
 
-  if (registerStatus === 0) {
-    return;
-  }
-  if (email == '' || password == '' || name == '' || surname == '') {
-    connection.destroy();
+  if (!email || !password || !name || !surname) {
     res
       .set(headers)
       .json({
         registerStatus: -1,
       })
+      .status(200)
       .end();
-    return;
   }
+  const connection = mysql.createConnection(db);
+  const query1 = `SELECT userId FROM users WHERE email="${email}"`;
+  const query2 = `INSERT INTO users (userId, email, password, name, surname, isActive, lastSeen, photo, activated) 
+  VALUES (NULL, "${email}", "${md5(
+    password,
+  )}", "${name}", "${surname}", 0, 0, 0, 0)`;
 
-  connection.query(
-    `INSERT INTO users (userId, email, password, name, surname, isActive, lastSeen, photo, activated) VALUES (NULL, "${
-      req.body.email
-    }", "${md5(req.body.password)}", "${req.body.name}", "${
-      req.body.surname
-    }", 0, NULL, NULL, NULL)`,
-    (err, result, fields) => {
-      if (err) throw err;
-      mailer.sendRegisterMail(
-        req.body.email,
-        result.insertId,
-        `${req.body.name} ${req.body.surname}`,
-      );
+  connection.query(query1, (err, result, fields) => {
+    if (err) throw err;
+    if (result.length === 0) {
+      connection.query(query2, (e, r, f) => {
+        if (e) throw e;
+        mailer.sendRegisterMail(email, r.insertId, `${name} ${surname}`);
+        res
+          .set(headers)
+          .json({ registerStatus: 1 })
+          .status(200)
+          .end();
+        connection.destroy();
+      });
+    } else {
       res
         .set(headers)
-        .json({
-          registerStatus: 1,
-        })
+        .json({ registerStatus: 0 })
+        .status(200)
         .end();
       connection.destroy();
-    },
-  );
+    }
+  });
 };
 
 const confirm = (req, res) => {

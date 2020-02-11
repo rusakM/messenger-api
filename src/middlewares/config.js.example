@@ -6,6 +6,7 @@ module.exports = {
         user: 'root',
         password: '',
         database: 'messenger',
+        charset: 'utf8mb4',
     },
     links: {
         api: `http://localhost:${port}`,
@@ -24,4 +25,5 @@ module.exports = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Authorization, Charset, Accept, Origin',
     },
+    pagination: 25,
 };

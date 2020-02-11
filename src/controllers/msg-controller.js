@@ -4,6 +4,7 @@ const { db, headers, pagination } = require('./../middlewares/config');
 const log = require('./../middlewares/log');
 // const setUserTimestamp = require('./../middlewares/user-timestamp');
 const setChatTimestamp = require('./../middlewares/chat-timstamp');
+const { resizeMessage } = require('../middlewares/resize');
 
 const getChats = (req, res) => {
   const { user } = req.body;
@@ -130,7 +131,7 @@ const sendMessage = (req, res) => {
   const timestamp = timeNow.getTime();
   const sql = `INSERT INTO messages 
     (messageId, chatId, content, timestamp, isRead, type, senderCanSee, receiverCanSee, userId)
-    VALUES (NULL, ${chatId}, "${content}", "${timestamp}", 0, ${messageType}, 1, 1, ${senderId})`;
+    VALUES (NULL, ${chatId}, '${content}', "${timestamp}", 0, ${messageType}, 1, 1, ${senderId})`;
 
   connection.query(sql, (err, result, fields) => {
     if (err) throw err;
@@ -141,13 +142,14 @@ const sendMessage = (req, res) => {
         `public/messages/${result.insertId}.jpg`,
         (err) => {
           if (err) throw err;
+          resizeMessage(senderId, result.insertId);
           res
             .set(headers)
             .json({
               chatId,
               messageId: result.insertId,
               content,
-              timestamp,
+              msgTimestamp: timestamp,
               isRead: 0,
               messageType: parseInt(messageType, 10),
               senderId,
@@ -165,7 +167,7 @@ const sendMessage = (req, res) => {
           chatId,
           messageId: result.insertId,
           content,
-          timestamp,
+          msgTimestamp: timestamp,
           isRead: 0,
           messageType: parseInt(messageType, 10),
           senderId,

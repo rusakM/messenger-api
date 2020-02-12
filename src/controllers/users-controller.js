@@ -1,6 +1,5 @@
 /* eslint-disable no-use-before-define */
 const mysql = require('mysql');
-const md5 = require('md5');
 const mailer = require('../middlewares/send-mail');
 const { db, links, headers } = require('./../middlewares/config');
 const log = require('./../middlewares/log');
@@ -9,9 +8,7 @@ const login = (req, res) => {
   const connection = mysql.createConnection(db);
 
   connection.query(
-    `SELECT userId, activated FROM users WHERE email="${
-      req.body.email
-    }" AND password="${md5(req.body.password)}"`,
+    `SELECT userId, activated FROM users WHERE email="${req.body.email}" AND password="${req.body.password}"`,
     (err, result, fields) => {
       if (err) throw err;
 
@@ -92,9 +89,7 @@ const register = (req, res) => {
   const connection = mysql.createConnection(db);
   const query1 = `SELECT userId FROM users WHERE email="${email}"`;
   const query2 = `INSERT INTO users (userId, email, password, name, surname, isActive, lastSeen, photo, activated) 
-  VALUES (NULL, "${email}", "${md5(
-    password,
-  )}", "${name}", "${surname}", 0, 0, 0, 0)`;
+  VALUES (NULL, "${email}", "${password}", "${name}", "${surname}", 0, 0, 0, 0)`;
 
   connection.query(query1, (err, result, fields) => {
     if (err) throw err;
